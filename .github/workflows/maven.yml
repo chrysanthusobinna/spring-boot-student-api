@@ -8,30 +8,29 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
+
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
     - name: Test with Maven
       run: mvn test
-      
-    - name: Deploy to Heroku
+
+    - name: Deploy to Heroku via Heroku CLI
+      if: github.ref == 'refs/heads/main' && success()
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      if: github.ref == 'refs/heads/main' && success()
       run: |
-        git remote add heroku https://heroku:${HEROKU_API_KEY}@git.heroku.com/java-santhus.git
+        curl https://cli-assets.heroku.com/install.sh | sh
+        heroku git:remote -a java-santhus
         git push heroku HEAD:main -f
-
-
-
