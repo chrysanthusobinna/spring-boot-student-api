@@ -31,5 +31,5 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         if: github.ref == 'refs/heads/main' && success()
         run: |
-          git remote add heroku https://heroku:${HEROKU_API_KEY}@git.heroku.com/java-santhus.git
+          git remote add heroku https://heroku:HRKU-b506db3c-7615-4393-8a4c-0751bf10337c@git.heroku.com/java-santhus.git
           git push heroku HEAD:main -f
