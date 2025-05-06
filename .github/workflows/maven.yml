@@ -2,9 +2,9 @@ name: Java CI/CD with Heroku Deployment
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-deploy:
@@ -26,28 +26,19 @@ jobs:
       - name: Run Tests
         run: mvn test
 
-      # ===== CHOOSE ONE DEPLOYMENT METHOD BELOW =====
-
-      # OPTION 1: Git-based Deployment (Simpler)
-      - name: Deploy to Heroku (Git)
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        if: github.ref == 'refs/heads/main' && success()
+      - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
-          echo "$HEROKU_API_KEY" | heroku login --api-key --username=ignore-this@example.com
-          git remote add heroku https://git.heroku.com/java-santhus.git
-          git push heroku HEAD:main --force
+          heroku --version
 
-      # OPTION 2: Container-based Deployment (More Reliable)
-      # - name: Deploy to Heroku (Container)
-      #   env:
-      #     HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      #     HEROKU_APP_NAME: "java-santhus"
-      #   if: github.ref == 'refs/heads/main' && success()
-      #   run: |
-      #     curl https://cli-assets.heroku.com/install.sh | sh
-      #     echo "$HEROKU_API_KEY" | heroku login --api-key
-      #     heroku container:login
-      #     heroku container:push web --app $HEROKU_APP_NAME
-      #     heroku container:release web --app $HEROKU_APP_NAME
+      - name: Deploy to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: "java-santhus"
+        run: |
+          # Authenticate with Heroku
+          echo "$HEROKU_API_KEY" | heroku login --api-key
+          
+          # Deploy using Git (modern auth)
+          git remote add heroku https://git.heroku.com/$HEROKU_APP_NAME.git || true
+          git push heroku HEAD:main --force
