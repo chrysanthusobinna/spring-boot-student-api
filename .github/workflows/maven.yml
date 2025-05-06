@@ -1,35 +1,32 @@
-name: Java CI/CD
+name: Deploy to Heroku
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
+    - name: Install Heroku CLI
+      run: |
+        curl https://cli-assets.heroku.com/install.sh | sh
 
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+    - name: Login to Heroku
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        echo "$HEROKU_API_KEY" | heroku auth:token
+        heroku auth:whoami
+        heroku git:remote -a ${{ secrets.HEROKU_APP_NAME }}
 
-      - name: Test with Maven
-        run: mvn test
-
-      - name: Deploy to Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        if: github.ref == 'refs/heads/main' && success()
-        run: |
-          git remote add heroku https://heroku:HRKU-b506db3c-7615-4393-8a4c-0751bf10337c@git.heroku.com/java-santhus.git
-          git push heroku HEAD:main -f
+    - name: Deploy to Heroku
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        git push https://heroku:${HEROKU_API_KEY}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git HEAD:main -f
